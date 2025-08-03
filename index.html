@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>風来のシレン6 アイテム値段検索ツール</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic Pro', 'ヒラギノ角ゴ Pro W3', Meiryo, sans-serif;
+            background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: rgba(255, 248, 220, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #CD853F, #D2691E);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .search-section {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-bottom: 3px solid #CD853F;
+        }
+
+        .filter-group {
+            margin-bottom: 15px;
+        }
+
+        .filter-label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #8B4513;
+            font-size: 14px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #CD853F;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #D2691E;
+            box-shadow: 0 0 8px rgba(210, 105, 30, 0.3);
+        }
+
+        .results-section {
+            padding: 20px;
+            min-height: 200px;
+        }
+
+        .result-item {
+            background: white;
+            border: 2px solid #CD853F;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .result-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .item-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #8B4513;
+            margin-bottom: 5px;
+        }
+
+        .item-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .buy-price, .sell-price {
+            padding: 8px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .buy-price {
+            background: rgba(255, 0, 0, 0.1);
+            color: #DC143C;
+            border: 1px solid rgba(220, 20, 60, 0.3);
+        }
+
+        .sell-price {
+            background: rgba(0, 128, 0, 0.1);
+            color: #228B22;
+            border: 1px solid rgba(34, 139, 34, 0.3);
+        }
+
+        .no-results {
+            text-align: center;
+            color: #8B4513;
+            font-size: 16px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            border: 2px dashed #CD853F;
+        }
+
+        .category-tag {
+            display: inline-block;
+            background: rgba(205, 133, 63, 0.2);
+            color: #8B4513;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(139, 69, 19, 0.3);
+        }
+
+        .curse-toggle {
+            background: linear-gradient(45deg, #8B008B, #9932CC);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(139, 0, 139, 0.3);
+            width: 100%;
+        }
+
+        .curse-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 0, 139, 0.4);
+        }
+
+        .curse-toggle.active {
+            background: linear-gradient(45deg, #4B0082, #663399);
+            box-shadow: 0 2px 8px rgba(75, 0, 130, 0.5);
+        }
+
+        .special-note {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                margin: 5px;
+                border-radius: 10px;
+            }
+            
+            .header {
+                font-size: 14px;
+                padding: 12px;
+            }
+            
+            .curse-toggle {
+                font-size: 12px;
+                padding: 10px 12px;
+            }
+            
+            .search-section, .results-section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">
+            🏺 風来のシレン6 とぐろ島探検録<br>
+            アイテム値段検索ツール
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="search-section">
+            <div class="filter-group">
+                <label class="filter-label">カテゴリ</label>
+                <select id="categoryFilter" onchange="searchItems()">
+                    <option value="">すべてのカテゴリ</option>
+                    <option value="巻物">巻物</option>
+                    <option value="草・種">草・種</option>
+                    <option value="腕輪">腕輪</option>
+                    <option value="杖">杖</option>
+                    <option value="壺">壺</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">買値で検索</label>
+                <select id="buyPriceFilter" onchange="searchItems()">
+                    <option value="">選択してください</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">売値で検索</label>
+                <select id="sellPriceFilter" onchange="searchItems()">
+                    <option value="">選択してください</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">アイテム名検索</label>
+                <input type="text" id="nameSearch" placeholder="アイテム名を入力..." oninput="searchItems()">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">価格表示</label>
+                <button class="curse-toggle" id="curseToggle" onclick="toggleCurse()">
+                    🏺 通常
+                </button>
+            </div>
+        </div>
+
+        <div class="results-section" id="results">
+            <div class="no-results">
+                条件を設定して検索してください
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const items = [
+            {name: "雑草", category: "草・種", buyPrice: 10, sellPrice: 4},
+            {name: "薬草", category: "草・種", buyPrice: 40, sellPrice: 10},
+            {name: "毒草", category: "草・種", buyPrice: 50, sellPrice: 20},
+            {name: "暴走の種", category: "草・種", buyPrice: 50, sellPrice: 20},
+            {name: "混乱草", category: "草・種", buyPrice: 70, sellPrice: 25},
+            {name: "睡眠草", category: "草・種", buyPrice: 70, sellPrice: 25},
+            {name: "目つぶし草", category: "草・種", buyPrice: 70, sellPrice: 25},
+            {name: "めぐすり草", category: "草・種", buyPrice: 70, sellPrice: 25},
+            {name: "すばやさ草", category: "草・種", buyPrice: 70, sellPrice: 25},
+            {name: "パワーアップ草", category: "草・種", buyPrice: 70, sellPrice: 25},
+            {name: "弟切草", category: "草・種", buyPrice: 80, sellPrice: 30},
+            {name: "高飛び草", category: "草・種", buyPrice: 100, sellPrice: 40},
+            {name: "くねくね草", category: "草・種", buyPrice: 100, sellPrice: 40},
+            {name: "いやし草", category: "草・種", buyPrice: 200, sellPrice: 80},
+            {name: "かぐわし草", category: "草・種", buyPrice: 200, sellPrice: 80},
+            {name: "胃拡張の種", category: "草・種", buyPrice: 200, sellPrice: 80},
+            {name: "胃縮小の種", category: "草・種", buyPrice: 200, sellPrice: 80},
+            {name: "ドラゴン草", category: "草・種", buyPrice: 250, sellPrice: 100},
+            {name: "復活の草", category: "草・種", buyPrice: 400, sellPrice: 160},
+            {name: "無敵草", category: "草・種", buyPrice: 400, sellPrice: 160},
+            {name: "不幸の種", category: "草・種", buyPrice: 400, sellPrice: 160},
+            {name: "命の草", category: "草・種", buyPrice: 500, sellPrice: 200},
+            {name: "毒消し草", category: "草・種", buyPrice: 600, sellPrice: 240},
+            {name: "ちからの草", category: "草・種", buyPrice: 700, sellPrice: 280},
+            {name: "しあわせ草", category: "草・種", buyPrice: 1000, sellPrice: 400},
+            {name: "天使の種", category: "草・種", buyPrice: 2000, sellPrice: 800},
+            {name: "超不幸の種", category: "草・種", buyPrice: 2000, sellPrice: 800},
+            
+            {name: "遠投の腕輪", category: "腕輪", buyPrice: 1500, sellPrice: 600},
+            {name: "ヘタ投げの腕輪", category: "腕輪", buyPrice: 1500, sellPrice: 600},
+            {name: "ボヨヨンの腕輪", category: "腕輪", buyPrice: 1500, sellPrice: 600},
+            {name: "連射の腕輪", category: "腕輪", buyPrice: 1500, sellPrice: 600},
+            {name: "諸刃の腕輪", category: "腕輪", buyPrice: 1500, sellPrice: 600},
+            {name: "痛恨の腕輪", category: "腕輪", buyPrice: 1500, sellPrice: 600},
+            {name: "高飛びの腕輪", category: "腕輪", buyPrice: 1500, sellPrice: 600},
+            {name: "爆発の腕輪", category: "腕輪", buyPrice: 1500, sellPrice: 600},
+            {name: "垂れ流しの腕輪", category: "腕輪", buyPrice: 1500, sellPrice: 600},
+            {name: "金垂れ流しの腕輪", category: "腕輪", buyPrice: 1500, sellPrice: 600},
+            {name: "罠増しの腕輪", category: "腕輪", buyPrice: 1500, sellPrice: 600},
+            {name: "ちからの腕輪", category: "腕輪", buyPrice: 2000, sellPrice: 800},
+            {name: "睡眠よけの腕輪", category: "腕輪", buyPrice: 2500, sellPrice: 1000},
+            {name: "気配察知の腕輪", category: "腕輪", buyPrice: 2500, sellPrice: 1000},
+            {name: "道具感知の腕輪", category: "腕輪", buyPrice: 2500, sellPrice: 1000},
+            {name: "大砲強化の腕輪", category: "腕輪", buyPrice: 2500, sellPrice: 1000},
+            {name: "呪いよけの腕輪", category: "腕輪", buyPrice: 3000, sellPrice: 1200},
+            {name: "水グモの腕輪", category: "腕輪", buyPrice: 3000, sellPrice: 1200},
+            {name: "浮遊の腕輪", category: "腕輪", buyPrice: 3000, sellPrice: 1200},
+            {name: "魔物呼びの腕輪", category: "腕輪", buyPrice: 3000, sellPrice: 1200},
+            {name: "胃拡張の腕輪", category: "腕輪", buyPrice: 3500, sellPrice: 1400},
+            {name: "胃縮小の腕輪", category: "腕輪", buyPrice: 3500, sellPrice: 1400},
+            {name: "弾きよけの腕輪", category: "腕輪", buyPrice: 3500, sellPrice: 1400},
+            {name: "値切りの腕輪", category: "腕輪", buyPrice: 3500, sellPrice: 1400},
+            {name: "しあわせの腕輪", category: "腕輪", buyPrice: 4000, sellPrice: 1600},
+            {name: "混乱よけの腕輪", category: "腕輪", buyPrice: 4000, sellPrice: 1600},
+            {name: "回復の腕輪", category: "腕輪", buyPrice: 5000, sellPrice: 2000},
+            {name: "錆よけの腕輪", category: "腕輪", buyPrice: 5000, sellPrice: 2000},
+            {name: "透視の腕輪", category: "腕輪", buyPrice: 5000, sellPrice: 2000},
+            {name: "裏道の腕輪", category: "腕輪", buyPrice: 5000, sellPrice: 2000},
+            {name: "すれちがいの腕輪", category: "腕輪", buyPrice: 5000, sellPrice: 2000},
+            {name: "毒消しの腕輪", category: "腕輪", buyPrice: 6500, sellPrice: 2600},
+            {name: "壁抜けの腕輪", category: "腕輪", buyPrice: 6500, sellPrice: 2600},
+            {name: "忍び足の腕輪", category: "腕輪", buyPrice: 6500, sellPrice: 2600},
+            {name: "罠師の腕輪", category: "腕輪", buyPrice: 7500, sellPrice: 3000},
+            {name: "鑑定師の腕輪", category: "腕輪", buyPrice: 7500, sellPrice: 3000},
+            {name: "百発百中の腕輪", category: "腕輪", buyPrice: 15000, sellPrice: 6000},
+            
+            {name: "ぬれた巻物", category: "巻物", buyPrice: 200, sellPrice: 80},
+            {name: "道具寄せの巻物", category: "巻物", buyPrice: 300, sellPrice: 120},
+            {name: "ゾワゾワの巻物", category: "巻物", buyPrice: 300, sellPrice: 120},
+            {name: "生物集合の巻物", category: "巻物", buyPrice: 300, sellPrice: 120},
+            {name: "銀封印の巻物", category: "巻物", buyPrice: 300, sellPrice: 120},
+            {name: "困った時の巻物", category: "巻物", buyPrice: 300, sellPrice: 120},
+            {name: "真空斬りの巻物", category: "巻物", buyPrice: 300, sellPrice: 120},
+            {name: "識別の巻物", category: "巻物", buyPrice: 300, sellPrice: 120},
+            {name: "バクスイの巻物", category: "巻物", buyPrice: 300, sellPrice: 120},
+            {name: "混乱の巻物", category: "巻物", buyPrice: 300, sellPrice: 120},
+            {name: "天の恵みの巻物", category: "巻物", buyPrice: 400, sellPrice: 160},
+            {name: "地の恵みの巻物", category: "巻物", buyPrice: 400, sellPrice: 160},
+            {name: "メッキの巻物", category: "巻物", buyPrice: 400, sellPrice: 160},
+            {name: "印増大の巻物", category: "巻物", buyPrice: 400, sellPrice: 160},
+            {name: "おにぎりの巻物", category: "巻物", buyPrice: 400, sellPrice: 160},
+            {name: "印消しの巻物", category: "巻物", buyPrice: 400, sellPrice: 160},
+            {name: "迷子の巻物", category: "巻物", buyPrice: 600, sellPrice: 240},
+            {name: "あかりの巻物", category: "巻物", buyPrice: 600, sellPrice: 240},
+            {name: "罠消しの巻物", category: "巻物", buyPrice: 600, sellPrice: 240},
+            {name: "おはらいの巻物", category: "巻物", buyPrice: 600, sellPrice: 240},
+            {name: "銀はがしの巻物", category: "巻物", buyPrice: 1000, sellPrice: 400},
+            {name: "拾えずの巻物", category: "巻物", buyPrice: 1000, sellPrice: 400},
+            {name: "くちなしの巻物", category: "巻物", buyPrice: 1000, sellPrice: 400},
+            {name: "バクチの巻物", category: "巻物", buyPrice: 1000, sellPrice: 400},
+            {name: "大部屋の巻物", category: "巻物", buyPrice: 1000, sellPrice: 400},
+            {name: "魔物部屋の巻物", category: "巻物", buyPrice: 1000, sellPrice: 400},
+            {name: "水がれの巻物", category: "巻物", buyPrice: 1000, sellPrice: 400},
+            {name: "罠の巻物", category: "巻物", buyPrice: 1000, sellPrice: 400},
+            {name: "脱出の巻物", category: "巻物", buyPrice: 1000, sellPrice: 400},
+            {name: "呪いの巻物", category: "巻物", buyPrice: 1000, sellPrice: 400},
+            {name: "吸い出しの巻物", category: "巻物", buyPrice: 1000, sellPrice: 400},
+            {name: "壺増大の巻物", category: "巻物", buyPrice: 1000, sellPrice: 400},
+            {name: "敵加速の巻物", category: "巻物", buyPrice: 1000, sellPrice: 400},
+            {name: "聖域の巻物", category: "巻物", buyPrice: 1000, sellPrice: 400},
+            {name: "白紙の巻物", category: "巻物", buyPrice: 1000, sellPrice: 400},
+            {name: "全滅の巻物", category: "巻物", buyPrice: 3000, sellPrice: 1200},
+            {name: "ねだやしの巻物", category: "巻物", buyPrice: 10000, sellPrice: 4000},
+            
+            {name: "導きの杖[2]", category: "杖", buyPrice: 900, sellPrice: 360, note: "回数2"},
+            {name: "導きの杖[3]", category: "杖", buyPrice: 1000, sellPrice: 400, note: "回数3"},
+            {name: "導きの杖[4]", category: "杖", buyPrice: 1100, sellPrice: 440, note: "回数4"},
+            {name: "かなしばりの杖[4]", category: "杖", buyPrice: 1100, sellPrice: 440, note: "回数4"},
+            {name: "封印の杖[4]", category: "杖", buyPrice: 1100, sellPrice: 440, note: "回数4"},
+            {name: "身代わりの杖[4]", category: "杖", buyPrice: 1100, sellPrice: 440, note: "回数4"},
+            {name: "一時しのぎの杖[4]", category: "杖", buyPrice: 1100, sellPrice: 440, note: "回数4"},
+            {name: "感電の杖[4]", category: "杖", buyPrice: 1100, sellPrice: 440, note: "回数4"},
+            {name: "トンネルの杖[4]", category: "杖", buyPrice: 1100, sellPrice: 440, note: "回数4"},
+            {name: "土塊の杖[4]", category: "杖", buyPrice: 1100, sellPrice: 440, note: "回数4"},
+            {name: "加速の杖[4]", category: "杖", buyPrice: 1100, sellPrice: 440, note: "回数4"},
+            {name: "鈍足の杖[4]", category: "杖", buyPrice: 1100, sellPrice: 440, note: "回数4"},
+            {name: "幸せの杖[4]", category: "杖", buyPrice: 1100, sellPrice: 440, note: "回数4"},
+            {name: "不幸の杖[4]", category: "杖", buyPrice: 1100, sellPrice: 440, note: "回数4"},
+            {name: "桃まんの杖[4]", category: "杖", buyPrice: 1100, sellPrice: 440, note: "回数4"},
+            {name: "ただの杖[5]", category: "杖", buyPrice: 1200, sellPrice: 480, note: "回数5"},
+            {name: "痛み分けの杖[5]", category: "杖", buyPrice: 1200, sellPrice: 480, note: "回数5"},
+            {name: "吹き飛ばしの杖[5]", category: "杖", buyPrice: 1200, sellPrice: 480, note: "回数5"},
+            {name: "場所がえの杖[5]", category: "杖", buyPrice: 1200, sellPrice: 480, note: "回数5"},
+            {name: "飛びつきの杖[5]", category: "杖", buyPrice: 1200, sellPrice: 480, note: "回数5"},
+            {name: "ガイコツまどうの杖[5]", category: "杖", buyPrice: 1200, sellPrice: 480, note: "回数5"},
+            {name: "転ばぬ先の杖[5]", category: "杖", buyPrice: 1200, sellPrice: 480, note: "回数5"},
+            {name: "かなしばりの杖[5]", category: "杖", buyPrice: 1200, sellPrice: 480, note: "回数5"},
+            {name: "封印の杖[5]", category: "杖", buyPrice: 1200, sellPrice: 480, note: "回数5"},
+            {name: "身代わりの杖[6]", category: "杖", buyPrice: 1300, sellPrice: 520, note: "回数6"},
+            {name: "一時しのぎの杖[6]", category: "杖", buyPrice: 1300, sellPrice: 520, note: "回数6"},
+            {name: "感電の杖[6]", category: "杖", buyPrice: 1300, sellPrice: 520, note: "回数6"},
+            {name: "トンネルの杖[6]", category: "杖", buyPrice: 1300, sellPrice: 520, note: "回数6"},
+            {name: "ただの杖[7]", category: "杖", buyPrice: 1400, sellPrice: 560, note: "回数7"},
+            {name: "痛み分けの杖[7]", category: "杖", buyPrice: 1400, sellPrice: 560, note: "回数7"},
+            {name: "吹き飛ばしの杖[7]", category: "杖", buyPrice: 1400, sellPrice: 560, note: "回数7"},
+            
+            // 壺のデータ（重複を除去し整理）
+            {name: "保存の壺[3]", category: "壺", buyPrice: 1100, sellPrice: 440, note: "容量3"},
+            {name: "識別の壺[3]", category: "壺", buyPrice: 1100, sellPrice: 440, note: "容量3"},
+            {name: "変化の壺[3]", category: "壺", buyPrice: 1100, sellPrice: 440, note: "容量3"},
+            {name: "換金の壺[3]", category: "壺", buyPrice: 1100, sellPrice: 440, note: "容量3"},
+            {name: "ただの壺[3]", category: "壺", buyPrice: 1100, sellPrice: 440, note: "容量3"},
+            
+            {name: "保存の壺[4]", category: "壺", buyPrice: 1200, sellPrice: 480, note: "容量4"},
+            {name: "識別の壺[4]", category: "壺", buyPrice: 1200, sellPrice: 480, note: "容量4"},
+            {name: "変化の壺[4]", category: "壺", buyPrice: 1200, sellPrice: 480, note: "容量4"},
+            {name: "換金の壺[4]", category: "壺", buyPrice: 1200, sellPrice: 480, note: "容量4"},
+            {name: "ただの壺[4]", category: "壺", buyPrice: 1200, sellPrice: 480, note: "容量4"},
+            {name: "やりすごしの壺[4]", category: "壺", buyPrice: 1200, sellPrice: 480, note: "容量4"},
+            
+            {name: "保存の壺[5]", category: "壺", buyPrice: 1300, sellPrice: 520, note: "容量5"},
+            {name: "識別の壺[5]", category: "壺", buyPrice: 1300, sellPrice: 520, note: "容量5"},
+            {name: "変化の壺[5]", category: "壺", buyPrice: 1300, sellPrice: 520, note: "容量5"},
+            {name: "換金の壺[5]", category: "壺", buyPrice: 1300, sellPrice: 520, note: "容量5"},
+            {name: "ただの壺[5]", category: "壺", buyPrice: 1300, sellPrice: 520, note: "容量5"},
+            {name: "やりすごしの壺[5]", category: "壺", buyPrice: 1300, sellPrice: 520, note: "容量5"},
+            {name: "手封じの壺[5]", category: "壺", buyPrice: 1300, sellPrice: 520, note: "容量5"},
+            {name: "割れない壺[5]", category: "壺", buyPrice: 1300, sellPrice: 520, note: "容量5"},
+            {name: "背中の壺[5]", category: "壺", buyPrice: 1300, sellPrice: 520, note: "容量5"},
+            {name: "トドの壺[5]", category: "壺", buyPrice: 1300, sellPrice: 520, note: "容量5"},
+            
+            {name: "換金の壺[6]", category: "壺", buyPrice: 1400, sellPrice: 560, note: "容量6"},
+            {name: "手封じの壺[6]", category: "壺", buyPrice: 1400, sellPrice: 560, note: "容量6"},
+            {name: "割れない壺[6]", category: "壺", buyPrice: 1400, sellPrice: 560, note: "容量6"},
+            {name: "背中の壺[6]", category: "壺", buyPrice: 1400, sellPrice: 560, note: "容量6"},
+            {name: "トドの壺[6]", category: "壺", buyPrice: 1400, sellPrice: 560, note: "容量6"},
+            
+            {name: "水鉄砲の壺[3]", category: "壺", buyPrice: 1500, sellPrice: 600, note: "容量3"},
+            {name: "魔物の壺[3]", category: "壺", buyPrice: 1500, sellPrice: 600, note: "容量3"},
+            {name: "ビックリの壺[3]", category: "壺", buyPrice: 1500, sellPrice: 600, note: "容量3"},
+            {name: "水鉄砲の壺[4]", category: "壺", buyPrice: 1500, sellPrice: 600, note: "容量4"},
+            
+            {name: "おはらいの壺[2]", category: "壺", buyPrice: 1800, sellPrice: 720, note: "容量2"},
+            {name: "呪いの壺[2]", category: "壺", buyPrice: 1800, sellPrice: 720, note: "容量2"},
+            
+            {name: "おはらいの壺[3]", category: "壺", buyPrice: 1900, sellPrice: 760, note: "容量3"},
+            {name: "呪いの壺[3]", category: "壺", buyPrice: 1900, sellPrice: 760, note: "容量3"},
+            
+            {name: "おはらいの壺[4]", category: "壺", buyPrice: 2000, sellPrice: 800, note: "容量4"},
+            {name: "呪いの壺[4]", category: "壺", buyPrice: 2000, sellPrice: 800, note: "容量4"},
+            
+            {name: "底抜けの壺[2]", category: "壺", buyPrice: 2200, sellPrice: 880, note: "容量2"},
+            
+            {name: "底抜けの壺[3]", category: "壺", buyPrice: 2300, sellPrice: 920, note: "容量3"},
+            {name: "倉庫の壺[2]", category: "壺", buyPrice: 2300, sellPrice: 920, note: "容量2"},
+            {name: "手封じの壺[3]", category: "壺", buyPrice: 2300, sellPrice: 920, note: "容量3"},
+            {name: "割れない壺[3]", category: "壺", buyPrice: 2300, sellPrice: 920, note: "容量3"},
+            {name: "背中の壺[3]", category: "壺", buyPrice: 2300, sellPrice: 920, note: "容量3"},
+            {name: "トドの壺[3]", category: "壺", buyPrice: 2300, sellPrice: 920, note: "容量3"},
+            
+            {name: "底抜けの壺[4]", category: "壺", buyPrice: 2400, sellPrice: 960, note: "容量4"},
+            {name: "倉庫の壺[3]", category: "壺", buyPrice: 2400, sellPrice: 960, note: "容量3"},
+            {name: "手封じの壺[4]", category: "壺", buyPrice: 2400, sellPrice: 960, note: "容量4"},
+            {name: "割れない壺[4]", category: "壺", buyPrice: 2400, sellPrice: 960, note: "容量4"},
+            {name: "背中の壺[4]", category: "壺", buyPrice: 2400, sellPrice: 960, note: "容量4"},
+            
+            {name: "倉庫の壺[4]", category: "壺", buyPrice: 2500, sellPrice: 1000, note: "容量4"},
+            {name: "倉庫の壺[5]", category: "壺", buyPrice: 2500, sellPrice: 1000, note: "容量5"},
+            {name: "水鉄砲の壺[5]", category: "壺", buyPrice: 2500, sellPrice: 1000, note: "容量5"},
+            {name: "魔物の壺[4]", category: "壺", buyPrice: 2500, sellPrice: 1000, note: "容量4"},
+            {name: "ビックリの壺[4]", category: "壺", buyPrice: 2500, sellPrice: 1000, note: "容量4"},
+            
+            {name: "合成の壺[3]", category: "壺", buyPrice: 6300, sellPrice: 2520, note: "容量3"},
+            {name: "合成の壺[4]", category: "壺", buyPrice: 6400, sellPrice: 2560, note: "容量4"},
+            {name: "強化の壺[2]", category: "壺", buyPrice: 10200, sellPrice: 4080, note: "容量2"},
+            {name: "弱化の壺[2]", category: "壺", buyPrice: 10200, sellPrice: 4080, note: "容量2"},
+            {name: "強化の壺[3]", category: "壺", buyPrice: 10300, sellPrice: 4120, note: "容量3"},
+            {name: "弱化の壺[3]", category: "壺", buyPrice: 10300, sellPrice: 4120, note: "容量3"}
+        ];
+
+        let isCursedMode = false;
+
+        const categoryPrices = {
+            "草・種": {
+                buyPrices: [10, 40, 50, 70, 80, 100, 200, 250, 400, 500, 600, 700, 1000, 2000],
+                sellPrices: [4, 10, 20, 25, 30, 40, 80, 100, 160, 200, 240, 280, 400, 800]
+            },
+            "腕輪": {
+                buyPrices: [1500, 2000, 2500, 3000, 3500, 4000, 5000, 6500, 7500, 15000],
+                sellPrices: [600, 800, 1000, 1200, 1400, 1600, 2000, 2600, 3000, 6000]
+            },
+            "巻物": {
+                buyPrices: [200, 300, 400, 600, 1000, 3000, 10000],
+                sellPrices: [80, 120, 160, 240, 400, 1200, 4000]
+            },
+            "杖": {
+                buyPrices: [900, 1000, 1100, 1200, 1300, 1400],
+                sellPrices: [360, 400, 440, 480, 520, 560]
+            },
+            "壺": {
+                buyPrices: [1100, 1200, 1300, 1400, 1500, 1800, 1900, 2000, 2200, 2300, 2400, 2500, 6300, 6400, 10200, 10300],
+                sellPrices: [440, 480, 520, 560, 600, 720, 760, 800, 880, 920, 960, 1000, 2520, 2560, 4080, 4120]
+            }
+        };
+
+        function calculateCursedPrice(price) {
+            return Math.floor(price * 0.87);
+        }
+
+        function toggleCurse() {
+            isCursedMode = !isCursedMode;
+            const button = document.getElementById('curseToggle');
+            
+            if (isCursedMode) {
+                button.textContent = '😈 呪い';
+                button.classList.add('active');
+            } else {
+                button.textContent = '🏺 通常';
+                button.classList.remove('active');
+            }
+            
+            updatePriceOptions();
+            searchItems();
+        }
+
+        function getPriceArray(prices, isCursed) {
+            if (isCursed) {
+                return prices.map(price => calculateCursedPrice(price));
+            }
+            return prices;
+        }
+
+        function updatePriceOptions() {
+            const category = document.getElementById('categoryFilter').value;
+            const buyPriceSelect = document.getElementById('buyPriceFilter');
+            const sellPriceSelect = document.getElementById('sellPriceFilter');
+            
+            buyPriceSelect.innerHTML = '<option value="">選択してください</option>';
+            sellPriceSelect.innerHTML = '<option value="">選択してください</option>';
+            
+            if (category && categoryPrices[category]) {
+                const buyPrices = getPriceArray(categoryPrices[category].buyPrices, isCursedMode);
+                const sellPrices = getPriceArray(categoryPrices[category].sellPrices, isCursedMode);
+                
+                buyPrices.forEach((price, index) => {
+                    const option = document.createElement('option');
+                    option.value = categoryPrices[category].buyPrices[index]; // 検索には通常価格を使用
+                    option.textContent = price + 'G';
+                    buyPriceSelect.appendChild(option);
+                });
+                
+                sellPrices.forEach((price, index) => {
+                    const option = document.createElement('option');
+                    option.value = categoryPrices[category].sellPrices[index]; // 検索には通常価格を使用
+                    option.textContent = price + 'G';
+                    sellPriceSelect.appendChild(option);
+                });
+            } else if (!category) {
+                const allBuyPrices = [...new Set(Object.values(categoryPrices).flatMap(cat => cat.buyPrices))].sort((a, b) => a - b);
+                const allSellPrices = [...new Set(Object.values(categoryPrices).flatMap(cat => cat.sellPrices))].sort((a, b) => a - b);
+                
+                const displayBuyPrices = getPriceArray(allBuyPrices, isCursedMode);
+                const displaySellPrices = getPriceArray(allSellPrices, isCursedMode);
+                
+                displayBuyPrices.forEach((price, index) => {
+                    const option = document.createElement('option');
+                    option.value = allBuyPrices[index]; // 検索には通常価格を使用
+                    option.textContent = price + 'G';
+                    buyPriceSelect.appendChild(option);
+                });
+                
+                displaySellPrices.forEach((price, index) => {
+                    const option = document.createElement('option');
+                    option.value = allSellPrices[index]; // 検索には通常価格を使用
+                    option.textContent = price + 'G';
+                    sellPriceSelect.appendChild(option);
+                });
+            }
+        }
+
+        function searchItems() {
+            const category = document.getElementById('categoryFilter').value;
+            let buyPrice = document.getElementById('buyPriceFilter').value;
+            let sellPrice = document.getElementById('sellPriceFilter').value;
+            const nameSearch = document.getElementById('nameSearch').value.toLowerCase();
+            
+            // カテゴリ変更時は価格選択肢を更新
+            if (document.activeElement && document.activeElement.id === 'categoryFilter') {
+                updatePriceOptions();
+                document.getElementById('buyPriceFilter').value = '';
+                document.getElementById('sellPriceFilter').value = '';
+                buyPrice = '';
+                sellPrice = '';
+            }
+            
+            // 価格選択時は他の価格フィルタを強制クリア
+            if (document.activeElement && document.activeElement.id === 'buyPriceFilter') {
+                document.getElementById('sellPriceFilter').value = '';
+                sellPrice = ''; // 変数もクリア
+            }
+            if (document.activeElement && document.activeElement.id === 'sellPriceFilter') {
+                document.getElementById('buyPriceFilter').value = '';
+                buyPrice = ''; // 変数もクリア
+            }
+            
+            // 重複を除去して検索実行
+            let filteredItems = items.filter(item => {
+                if (category && item.category !== category) return false;
+                if (nameSearch && !item.name.toLowerCase().includes(nameSearch)) return false;
+                
+                // 買値と売値の両方が設定されている場合は買値を優先
+                if (buyPrice && sellPrice) {
+                    return item.buyPrice === parseInt(buyPrice);
+                } else if (buyPrice) {
+                    return item.buyPrice === parseInt(buyPrice);
+                } else if (sellPrice) {
+                    return item.sellPrice === parseInt(sellPrice);
+                }
+                
+                return true;
+            });
+            
+            // 重複を除去（同じ名前とカテゴリのアイテムは1つだけ表示）
+            const uniqueItems = [];
+            const seen = new Set();
+            
+            for (const item of filteredItems) {
+                const key = `${item.name}-${item.category}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    uniqueItems.push(item);
+                }
+            }
+            
+            displayResults(uniqueItems);
+        }
+
+        function displayResults(items) {
+            const resultsDiv = document.getElementById('results');
+            
+            if (items.length === 0) {
+                resultsDiv.innerHTML = '<div class="no-results">検索条件に一致するアイテムが見つかりませんでした</div>';
+                return;
+            }
+            
+            let html = '';
+            items.forEach(item => {
+                let buyPriceText, sellPriceText;
+                
+                if (isCursedMode) {
+                    buyPriceText = `${calculateCursedPrice(item.buyPrice)}G`;
+                    sellPriceText = `${calculateCursedPrice(item.sellPrice)}G`;
+                } else {
+                    buyPriceText = `${item.buyPrice}G`;
+                    sellPriceText = `${item.sellPrice}G`;
+                }
+                
+                html += `
+                    <div class="result-item">
+                        <div class="category-tag">${item.category}</div>
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-details">
+                            <div class="buy-price ${isCursedMode ? 'cursed-price' : ''}">買値: ${buyPriceText}</div>
+                            <div class="sell-price ${isCursedMode ? 'cursed-price' : ''}">売値: ${sellPriceText}</div>
+                        </div>
+                        ${item.note ? `<div class="special-note">※ ${item.note}</div>` : ''}
+                        ${isCursedMode ? '<div class="special-note">😈 呪い状態の価格</div>' : ''}
+                    </div>
+                `;
+            });
+            
+            resultsDiv.innerHTML = html;
+        }
+
+        window.onload = function() {
+            updatePriceOptions();
+            displayResults(items);
+        };
+    </script>
+</body>
+</html>
